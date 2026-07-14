@@ -1,14 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  async rewrites() {
-    const backendUrl = process.env.BACKEND_URL ?? "http://localhost:5000";
-    return [
-      {
-        source: "/api/:path*",
-        destination: `${backendUrl}/api/:path*`,
-      },
-    ];
+  experimental: {
+    serverActions: {
+      // CVs / transcripts are uploaded through the submitApplication server
+      // action, so lift the default 1MB body cap.
+      bodySizeLimit: "10mb",
+    },
   },
 };
 
