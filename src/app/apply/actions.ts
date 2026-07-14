@@ -6,6 +6,7 @@ import {
   type ApplicationInput,
 } from "@/lib/application-schema";
 import { ingestApplication } from "@/lib/backend-client";
+import { uploadToGoogleDrive } from "@/lib/google-drive";
 
 /**
  * Backend-for-Frontend submission handler. Runs on the Next server: validates
@@ -52,6 +53,25 @@ export async function submitApplication(
   const data = parsed.data;
 
   try {
+    let cvLink = "";
+    let transcriptLink = "";
+
+    // Upload CV to Google Drive and log link
+    if (data.cv) {
+      const cvUpload = await uploadToGoogleDrive(data.cv);
+      cvLink = cvUpload.webViewLink;
+      console.log(`[Google Drive] CV uploaded for ${data.firstName} ${data.surname}: ${cvLink}`);
+    }
+
+    // Upload Transcript to Google Drive if provided
+    if (data.transcript) {
+      const transcriptUpload = await uploadToGoogleDrive(data.transcript);
+      transcriptLink = transcriptUpload.webViewLink;
+      console.log(`[Google Drive] Transcript uploaded for ${data.firstName} ${data.surname}: ${transcriptLink}`);
+    }
+
+    /*
+    // C# Backend Ingestion (bypassed for now, will call later)
     await ingestApplication({
       candidateName: `${data.firstName} ${data.surname}`.trim(),
       candidateEmail: data.email,
@@ -59,7 +79,9 @@ export async function submitApplication(
       transcript: data.transcript,
       idempotencyKey: crypto.randomUUID(),
     });
-  } catch {
+    */
+  } catch (error) {
+    console.error("Error during Google Drive upload:", error);
     return {
       status: "error",
       message:
