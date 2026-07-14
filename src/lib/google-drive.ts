@@ -1,14 +1,14 @@
-import { google } from "googleapis";
+import { google, type drive_v3 } from "googleapis";
 import { Readable } from "stream";
 import { env } from "./env";
 
 /**
- * Helper to upload a file (as a Buffer/Readable) to Google Drive,
- * make it public, and return the shareable webViewLink.
+ * Build an authenticated Drive v3 client. We authenticate as a real Google
+ * account via OAuth2: the refresh token lets us mint access tokens without user
+ * interaction, and uploaded files are owned by (and count against the quota of)
+ * that account.
  */
-export async function uploadToGoogleDrive(
-  file: File,
-): Promise<{ fileId: string; webViewLink: string }> {
+function getDriveClient(): drive_v3.Drive {
   const clientId = env.GOOGLE_OAUTH_CLIENT_ID;
   const clientSecret = env.GOOGLE_OAUTH_CLIENT_SECRET;
   const refreshToken = env.GOOGLE_OAUTH_REFRESH_TOKEN;
@@ -19,13 +19,20 @@ export async function uploadToGoogleDrive(
     );
   }
 
-  // Authenticate as a real Google account via OAuth2. The refresh token lets us
-  // mint access tokens without user interaction; uploaded files are owned by
-  // (and count against the quota of) that account.
   const auth = new google.auth.OAuth2(clientId, clientSecret);
   auth.setCredentials({ refresh_token: refreshToken });
 
-  const drive = google.drive({ version: "v3", auth });
+  return google.drive({ version: "v3", auth });
+}
+
+/**
+ * Helper to upload a file (as a Buffer/Readable) to Google Drive,
+ * make it public, and return the shareable webViewLink.
+ */
+export async function uploadToGoogleDrive(
+  file: File,
+): Promise<{ fileId: string; webViewLink: string; downloadUrl: string }> {
+  const drive = getDriveClient();
 
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
@@ -74,8 +81,13 @@ export async function uploadToGoogleDrive(
     throw new Error("Failed to retrieve public webViewLink from Google Drive.");
   }
 
+  // Direct-download URL that returns the raw file bytes (not the HTML preview
+  // page). This is what a server-side consumer should fetch to get the PDF.
+  const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+
   return {
     fileId,
     webViewLink,
+    downloadUrl,
   };
 }

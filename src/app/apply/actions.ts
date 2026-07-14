@@ -52,36 +52,36 @@ export async function submitApplication(
 
   const data = parsed.data;
 
+  const candidateName = `${data.firstName} ${data.surname}`.trim();
+
   try {
-    let cvLink = "";
-    let transcriptLink = "";
+    // 1. Upload CV to Google Drive — this hosts it and yields a public link.
+    const cvUpload = await uploadToGoogleDrive(data.cv);
+    console.log(
+      `[Google Drive] CV uploaded for ${candidateName}: ${cvUpload.webViewLink}`,
+    );
 
-    // Upload CV to Google Drive and log link
-    if (data.cv) {
-      const cvUpload = await uploadToGoogleDrive(data.cv);
-      cvLink = cvUpload.webViewLink;
-      console.log(`[Google Drive] CV uploaded for ${data.firstName} ${data.surname}: ${cvLink}`);
-    }
-
-    // Upload Transcript to Google Drive if provided
+    // Upload the transcript too, if the candidate provided one.
+    let transcriptUrl: string | null = null;
     if (data.transcript) {
       const transcriptUpload = await uploadToGoogleDrive(data.transcript);
-      transcriptLink = transcriptUpload.webViewLink;
-      console.log(`[Google Drive] Transcript uploaded for ${data.firstName} ${data.surname}: ${transcriptLink}`);
+      transcriptUrl = transcriptUpload.downloadUrl;
+      console.log(
+        `[Google Drive] Transcript uploaded for ${candidateName}: ${transcriptUpload.webViewLink}`,
+      );
     }
 
-    /*
-    // C# Backend Ingestion (bypassed for now, will call later)
+    // 2. Forward the candidate details + the Drive download URLs to the C#
+    //    ingest endpoint, which fetches the PDFs from those URLs on its side.
     await ingestApplication({
-      candidateName: `${data.firstName} ${data.surname}`.trim(),
+      candidateName,
       candidateEmail: data.email,
-      cv: data.cv,
-      transcript: data.transcript,
+      cvUrl: cvUpload.downloadUrl,
+      transcriptUrl,
       idempotencyKey: crypto.randomUUID(),
     });
-    */
   } catch (error) {
-    console.error("Error during Google Drive upload:", error);
+    console.error("Error submitting application:", error);
     return {
       status: "error",
       message:
