@@ -9,25 +9,21 @@ import { env } from "./env";
 export async function uploadToGoogleDrive(
   file: File,
 ): Promise<{ fileId: string; webViewLink: string }> {
-  const email = env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const privateKey = env.GOOGLE_PRIVATE_KEY;
+  const clientId = env.GOOGLE_OAUTH_CLIENT_ID;
+  const clientSecret = env.GOOGLE_OAUTH_CLIENT_SECRET;
+  const refreshToken = env.GOOGLE_OAUTH_REFRESH_TOKEN;
 
-  if (!email || !privateKey) {
+  if (!clientId || !clientSecret || !refreshToken) {
     throw new Error(
-      "Google Service Account credentials are not configured. Please check your environment variables."
+      "Google OAuth credentials are not configured. Please check your environment variables."
     );
   }
 
-  // Convert literal escape \n sequences to actual newlines
-  const formattedPrivateKey = privateKey.replace(/\\n/g, "\n");
-
-  const auth = new google.auth.GoogleAuth({
-    credentials: {
-      client_email: email,
-      private_key: formattedPrivateKey,
-    },
-    scopes: ["https://www.googleapis.com/auth/drive"],
-  });
+  // Authenticate as a real Google account via OAuth2. The refresh token lets us
+  // mint access tokens without user interaction; uploaded files are owned by
+  // (and count against the quota of) that account.
+  const auth = new google.auth.OAuth2(clientId, clientSecret);
+  auth.setCredentials({ refresh_token: refreshToken });
 
   const drive = google.drive({ version: "v3", auth });
 
