@@ -1,0 +1,27 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme inline {
+  --color-dvt-primary: #007fba;
+  --color-dvt-blue: #2b9fd9;
+  --color-dvt-midnight: #070c14;
+  --color-dvt-navy: #0a0f1a;
+  --color-dvt-navy-light: #131a29;
+  --color-dvt-steel: #f0f4f8;
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    color: #1a1a2e;
+    background: #0a0f1a;
+    -webkit-font-smoothing: antialiased;
+  }
+}
