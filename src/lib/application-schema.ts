@@ -66,10 +66,18 @@ export const applicationSchema = z.object({
 
 export type ApplicationInput = z.infer<typeof applicationSchema>;
 
+/**
+ * The submitted values echoed back to the form so a rejected submission can
+ * re-render with what the candidate typed. Files are excluded: they can't be
+ * serialised back into the response, so `FileInput` re-attaches those itself.
+ */
+export type ApplicationValues = Omit<ApplicationInput, "cv" | "transcript">;
+
 export type ApplicationFormState = {
   status: "idle" | "success" | "error";
   message?: string;
   fieldErrors?: Partial<Record<keyof ApplicationInput, string>>;
+  values?: ApplicationValues;
 };
 
 export const initialApplicationState: ApplicationFormState = { status: "idle" };
