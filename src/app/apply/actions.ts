@@ -4,8 +4,34 @@ import {
   applicationSchema,
   type ApplicationFormState,
   type ApplicationInput,
+  type ApplicationValues,
 } from "@/lib/application-schema";
 import { ingestApplication } from "@/lib/backend-client";
+
+const text = (formData: FormData, name: string) => {
+  const value = formData.get(name);
+  return typeof value === "string" ? value : "";
+};
+
+/**
+ * Reads back exactly what the candidate typed, so a failed submission can be
+ * re-rendered with their answers intact rather than an empty form.
+ */
+function readValues(formData: FormData): ApplicationValues {
+  return {
+    firstName: text(formData, "firstName"),
+    surname: text(formData, "surname"),
+    email: text(formData, "email"),
+    phone: text(formData, "phone"),
+    locations: formData.getAll("locations").filter((v) => typeof v === "string"),
+    university: text(formData, "university"),
+    degree: text(formData, "degree"),
+    yearOfCompletion: text(formData, "yearOfCompletion"),
+    country: text(formData, "country"),
+    city: text(formData, "city"),
+    privacyConsent: formData.get("privacyConsent") === "yes",
+  };
+}
 
 /**
  * Backend-for-Frontend submission handler. Runs on the Next server: validates
@@ -17,6 +43,8 @@ export async function submitApplication(
   _previousState: ApplicationFormState,
   formData: FormData,
 ): Promise<ApplicationFormState> {
+  const values = readValues(formData);
+
   const parsed = applicationSchema.safeParse({
     firstName: formData.get("firstName"),
     surname: formData.get("surname"),
@@ -46,6 +74,7 @@ export async function submitApplication(
       status: "error",
       message: "Please fix the highlighted fields and try again.",
       fieldErrors,
+      values,
     };
   }
 
@@ -64,6 +93,7 @@ export async function submitApplication(
       status: "error",
       message:
         "We couldn't submit your application right now. Please try again in a moment.",
+      values,
     };
   }
 
