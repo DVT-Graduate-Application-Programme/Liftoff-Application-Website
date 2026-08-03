@@ -1,18 +1,20 @@
+import Link from "next/link";
+
 const NAV_LINKS = [
-  "About Us",
-  "Services",
-  "Solutions",
-  "Industries",
-  "Clients",
-  "Academy",
-  "Media",
-  "Careers",
-  "Contact Us",
+  { name: "About Us", href: "/" },
+  { name: "Services", href: "/" },
+  { name: "Solutions", href: "/" },
+  { name: "Industries", href: "/" },
+  { name: "Clients", href: "/" },
+  { name: "Academy", href: "/" },
+  { name: "Media", href: "/" },
+  { name: "Careers", href: "/careers" },
+  { name: "Contact Us", href: "/" },
 ];
 
 function DvtLogo() {
   return (
-    <div className="flex items-center gap-2.5">
+    <Link href="/" className="flex items-center gap-2.5">
       <div className="w-11 h-11 rounded-full border border-dvt-blue/60 flex items-center justify-center">
         <span className="text-dvt-blue text-lg font-bold tracking-tight select-none lowercase">
           dvt
@@ -22,7 +24,7 @@ function DvtLogo() {
         <p className="text-[9px] text-gray-400 tracking-wide">smart people</p>
         <p className="text-[9px] text-gray-400 tracking-wide">smart solutions</p>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -34,13 +36,13 @@ export function SiteHeader() {
         <DvtLogo />
         <nav className="hidden lg:flex items-center gap-6">
           {NAV_LINKS.map((item) => (
-            <a
-              key={item}
-              href="#"
+            <Link
+              key={item.name}
+              href={item.href}
               className="text-[12px] text-gray-200 hover:text-dvt-blue transition-colors whitespace-nowrap"
             >
-              {item}
-            </a>
+              {item.name}
+            </Link>
           ))}
         </nav>
       </div>

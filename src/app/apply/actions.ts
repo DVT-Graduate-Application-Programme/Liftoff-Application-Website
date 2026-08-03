@@ -81,11 +81,13 @@ export async function submitApplication(
   const data = parsed.data;
 
   try {
+    const vacancyId = text(formData, "vacancyId");
     await ingestApplication({
       candidateName: `${data.firstName} ${data.surname}`.trim(),
       candidateEmail: data.email,
       cv: data.cv,
       transcript: data.transcript,
+      vacancyId: vacancyId || null,
       idempotencyKey: crypto.randomUUID(),
     });
   } catch {

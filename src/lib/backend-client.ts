@@ -7,19 +7,22 @@ type IngestArgs = {
   candidateEmail: string;
   cv: File;
   transcript?: File | null;
+  vacancyId?: string | null;
   idempotencyKey: string;
 };
 
 /**
  * Thin, server-only wrapper around the C# ingest endpoint. This is the single
- * place that knows the backend's URL and multipart contract — swap this out if
- * the upload strategy changes (e.g. presigned-URL direct-to-storage).
+ * place that knows the backend's URL and multipart contract.
  */
 export async function ingestApplication(args: IngestArgs): Promise<void> {
   const body = new FormData();
   body.append("CandidateName", args.candidateName);
   body.append("CandidateEmail", args.candidateEmail);
   body.append("CvFile", args.cv);
+  if (args.vacancyId) {
+    body.append("VacancyId", args.vacancyId);
+  }
   if (args.transcript && args.transcript.size > 0) {
     body.append("TranscriptFile", args.transcript);
   }

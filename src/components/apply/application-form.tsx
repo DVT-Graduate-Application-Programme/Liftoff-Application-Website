@@ -27,7 +27,7 @@ function FieldError({
 }
 
 /** Interactive client island — the whole apply form, driven by useActionState. */
-export function ApplicationForm() {
+export function ApplicationForm({ vacancyId }: { vacancyId?: string }) {
   const [state, formAction, isPending] = useActionState(
     submitApplication,
     initialApplicationState,
@@ -47,6 +47,7 @@ export function ApplicationForm() {
       </h2>
 
       <form action={formAction} className="flex flex-col gap-3" noValidate>
+        {vacancyId && <input type="hidden" name="vacancyId" value={vacancyId} />}
         <input
           type="text"
           name="firstName"
