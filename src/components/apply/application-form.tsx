@@ -36,6 +36,9 @@ export function ApplicationForm() {
   if (state.status === "success") return <SuccessMessage />;
 
   const errors = state.fieldErrors;
+  // React resets the form after every action, including failed ones, so each
+  // field re-seeds its default from the values the action echoed back.
+  const values = state.values;
 
   return (
     <div className="w-full max-w-md bg-white rounded-lg shadow-2xl px-8 py-7">
@@ -49,6 +52,7 @@ export function ApplicationForm() {
           name="firstName"
           placeholder="Name"
           required
+          defaultValue={values?.firstName}
           className={inputCls}
         />
         <FieldError errors={errors} name="firstName" />
@@ -58,6 +62,7 @@ export function ApplicationForm() {
           name="surname"
           placeholder="Surname"
           required
+          defaultValue={values?.surname}
           className={inputCls}
         />
         <FieldError errors={errors} name="surname" />
@@ -67,6 +72,7 @@ export function ApplicationForm() {
           name="email"
           placeholder="Email"
           required
+          defaultValue={values?.email}
           className={inputCls}
         />
         <FieldError errors={errors} name="email" />
@@ -75,6 +81,7 @@ export function ApplicationForm() {
           type="tel"
           name="phone"
           placeholder="Phone no"
+          defaultValue={values?.phone}
           className={inputCls}
         />
 
@@ -89,6 +96,7 @@ export function ApplicationForm() {
                 type="checkbox"
                 name="locations"
                 value={location}
+                defaultChecked={values?.locations.includes(location)}
                 className="accent-dvt-primary w-3.5 h-3.5"
               />
               <span className="text-[12px] text-gray-600">{location}</span>
@@ -106,6 +114,7 @@ export function ApplicationForm() {
           type="text"
           name="university"
           placeholder="University where you studied"
+          defaultValue={values?.university}
           className={inputCls}
         />
 
@@ -113,6 +122,7 @@ export function ApplicationForm() {
           type="text"
           name="degree"
           placeholder="Degree"
+          defaultValue={values?.degree}
           className={inputCls}
         />
 
@@ -120,10 +130,22 @@ export function ApplicationForm() {
           type="text"
           name="yearOfCompletion"
           placeholder="Year/expected year of completion"
+          defaultValue={values?.yearOfCompletion}
           className={inputCls}
         />
 
-        <select name="country" defaultValue="" aria-label="Country" className={inputCls}>
+        {/*
+          react-dom only applies a select's defaultValue when it mounts, so the
+          echoed country needs a key change to be honoured — otherwise the reset
+          drops the selection back to the placeholder.
+        */}
+        <select
+          key={values?.country ?? ""}
+          name="country"
+          defaultValue={values?.country ?? ""}
+          aria-label="Country"
+          className={inputCls}
+        >
           <option value="" disabled>
             Please select a country
           </option>
@@ -138,6 +160,7 @@ export function ApplicationForm() {
           type="text"
           name="city"
           placeholder="City"
+          defaultValue={values?.city}
           className={inputCls}
         />
 
@@ -147,6 +170,7 @@ export function ApplicationForm() {
             name="privacyConsent"
             value="yes"
             required
+            defaultChecked={values?.privacyConsent}
             className="accent-dvt-primary mt-0.5 w-3.5 h-3.5 shrink-0"
           />
           <span className="text-[11px] text-gray-500 leading-relaxed">

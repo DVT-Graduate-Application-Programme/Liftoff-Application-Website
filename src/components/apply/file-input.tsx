@@ -1,11 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Native file input styled to match the browser's "Choose File / No file
  * chosen" look. Uncontrolled (has a real `name`) so it's part of the form's
- * FormData; a little local state only tracks the display filename.
+ * FormData; a little local state only tracks the chosen file.
  */
 export function FileInput({
   name,
@@ -17,7 +17,27 @@ export function FileInput({
   required?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [fileName, setFileName] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    const input = inputRef.current;
+    const form = input?.form;
+    if (!input || !form || !file) return;
+
+    // React resets the form after every action, failed ones included, which
+    // drops the file selection. A file can't be restored via defaultValue like
+    // the text fields, so re-attach it once the reset has run.
+    const restore = () =>
+      queueMicrotask(() => {
+        if (input.files?.length) return;
+        const transfer = new DataTransfer();
+        transfer.items.add(file);
+        input.files = transfer.files;
+      });
+
+    form.addEventListener("reset", restore);
+    return () => form.removeEventListener("reset", restore);
+  }, [file]);
 
   return (
     <div>
@@ -34,7 +54,7 @@ export function FileInput({
           Choose File
         </button>
         <span className="text-gray-500 truncate">
-          {fileName || "No file chosen"}
+          {file?.name ?? "No file chosen"}
         </span>
         <input
           ref={inputRef}
@@ -43,7 +63,7 @@ export function FileInput({
           accept=".pdf,.doc,.docx"
           required={required}
           aria-label={label}
-          onChange={(event) => setFileName(event.target.files?.[0]?.name ?? "")}
+          onChange={(event) => setFile(event.target.files?.[0] ?? null)}
           className="hidden"
         />
       </div>
